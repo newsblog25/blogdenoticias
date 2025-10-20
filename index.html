@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog de Notícias</title>
+
+    <!-- ===== Ícone da Aba (Favicon) e Meta Tags para Compartilhamento ===== -->
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/9F7d9T5G/newspaper-icon.png">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" id="og-type">
+    <meta property="og:url" content="" id="og-url">
+    <meta property="og:title" content="Blog de Notícias" id="og-title">
+    <meta property="og:description" content="As últimas notícias do Brasil e do mundo, com credibilidade." id="og-description">
+    <meta property="og:image" content="https://i.postimg.cc/9F7d9T5G/newspaper-icon.png" id="og-image">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="" id="twitter-url">
+    <meta property="twitter:title" content="Blog de Notícias" id="twitter-title">
+    <meta property="twitter:description" content="As últimas notícias do Brasil e do mundo, com credibilidade." id="twitter-description">
+    <meta property="twitter:image" content="https://i.postimg.cc/9F7d9T5G/newspaper-icon.png" id="twitter-image">
+    <!-- ===== Fim da Seção ===== -->
+
+
+    <!-- TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome (for icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Quill.js Editor -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- jsPDF and jsPDF AutoTable -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+        
+        /* Estilos para o conteúdo gerado pelo Quill.js */
+        .ql-editor {
+            font-size: 1.125rem;
+            line-height: 1.75;
+            color: #333;
+        }
+
+        .ql-editor h1 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+        }
+
+        .ql-editor h2 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .ql-editor p {
+            margin-bottom: 1.25rem;
+        }
+
+        .ql-editor a {
+            color: #3B82F6;
+            text-decoration: underline;
+        }
+        
+        .ql-editor iframe {
+            display: block;
+            margin: 2rem auto;
+            width: 100%;
+            max-width: 800px;
+            aspect-ratio: 16 / 9;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        
+        .ql-editor iframe + p {
+            display: block;
+            text-align: center;
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: -1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .ql-editor strong, .ql-editor b {
+            color: #3B82F6;
+            font-weight: 700;
+        }
+
+        /* Classes de animação para o toast */
+        .toast-enter {
+            opacity: 0;
+            transform: translateY(100%);
+        }
+        .toast-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 300ms ease-out;
+        }
+        .toast-exit {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .toast-exit-active {
+            opacity: 0;
+            transform: translateY(100%);
+            transition: all 300ms ease-in;
+        }
+
+        /* Marker azul para listas */
+        .blue-marker::before {
+            content: '';
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background-color: #3B82F6;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        
+        /* Drag and Drop styles */
+        .draggable {
+            cursor: move;
+        }
+        .dragging {
+            opacity: 0.5;
+            background: #e0e7ff;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .drag-over {
+            background-color: #eff6ff;
+            border: 2px dashed #93c5fd;
+        }
+        .draggable.disabled {
+            cursor: not-allowed;
+            background-color: #f3f4f6;
+            color: #9ca3af;
+        }
+        .draggable.disabled:hover {
+            box-shadow: none;
+        }
+        
+        /* Ocultar barra de rolagem padrão no Chrome/Safari/Edge */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none; /* IE e Edge */
+            scrollbar-width: none; /* Firefox */
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- ===== HEADER ===== -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-4 flex justify-center items-center">
+            <a href="#/" class="flex items-center gap-3 text-3xl font-extrabold text-gray-800">
+                <i class="fa-solid fa-newspaper text-blue-500"></i>
+                <span>Blog de Notícias</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main id="app-root" class="container mx-auto px-4 py-6 md:py-8">
+        <!-- Loader -->
+        <div id="loader" class="text-center py-20">
+            <i class="fas fa-spinner fa-spin text-4xl text-blue-500"></i>
+        </div>
+
+        <!-- Conteúdo principal será renderizado aqui pelo JS -->
+    </main>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="bg-gray-800 text-white mt-12">
+        <div class="container mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center text-sm">
+            <p>&copy; <span id="current-year"></span> Blog de Notícias. Todos os direitos reservados.</p>
+            <div class="mt-4 md:mt-0">
+                <a href="#/admin" class="hover:text-blue-400 transition-colors">Painel Admin</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast-exit fixed bottom-5 right-5 p-4 rounded-lg shadow-lg text-white max-w-sm z-50 transition-all duration-300 transform hidden">
+        <p id="toast-message"></p>
+    </div>
+
+    <!-- ===== TEMPLATES ===== -->
+    <template id="home-template">
+        <div id="home-view" class="space-y-8">
+            <!-- Bloco Principal -->
+            <div id="main-block-placeholder"></div>
+            <!-- Feed Contínuo -->
+            <div id="feed-container-placeholder" class="grid grid-cols-1 lg:grid-cols-3 gap-8"></div>
+        </div>
+    </template>
+    
+    <template id="article-template">
+        <div id="article-view" class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="px-4 sm:px-6 md:px-8 pt-6">
+                 <!-- Breadcrumb e Botão Voltar (Topo) -->
+                <nav class="text-sm mb-4" aria-label="Breadcrumb">
+                    <ol class="list-none p-0 inline-flex">
+                        <li class="flex items-center">
+                            <a href="#/" class="text-gray-500 hover:text-blue-600">Página Inicial</a>
+                            <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                        </li>
+                        <li>
+                            <span class="text-gray-700 font-semibold">Notícia</span>
+                        </li>
+                    </ol>
+                </nav>
+                <a href="#/" class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-semibold mb-4">
+                    <i class="fas fa-arrow-left"></i>
+                    Voltar para todas as notícias
+                </a>
+            </div>
+            <div class="p-4 sm:p-6 md:p-8 pt-4">
+                <!-- Título e Subtítulo -->
+                <h1 id="article-title" class="text-3xl md:text-5xl font-extrabold text-gray-900 leading-tight mb-2"></h1>
+                <p id="article-subtitle" class="text-lg md:text-xl text-gray-600 mb-6"></p>
+
+                <!-- Autor, Data, Tempo de Leitura e Compartilhamento -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-y py-3">
+                    <div>
+                        <span id="article-author" class="text-sm text-gray-500"></span>
+                        <span class="mx-2 text-gray-500">&bull;</span>
+                        <span id="article-date" class="text-sm text-gray-500"></span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span id="reading-time" class="text-sm text-gray-500 flex items-center gap-2 shrink-0">
+                            <i class="far fa-clock"></i>
+                            <span></span>
+                        </span>
+                        <div id="share-buttons-top" class="flex items-center gap-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Imagem de Destaque -->
+            <figure>
+                <img id="article-image" src="" alt="" class="w-full h-auto object-cover">
+                <figcaption id="article-image-caption" class="text-center text-sm text-gray-500 p-2 bg-gray-50"></figcaption>
+            </figure>
+
+            <div class="p-4 sm:p-6 md:p-8 flex flex-col lg:flex-row gap-8">
+                <!-- Conteúdo -->
+                <div class="w-full lg:w-3/4">
+                    <div id="article-content" class="ql-editor"></div>
+                </div>
+
+                <!-- Mais Lidas -->
+                <aside class="w-full lg:w-1/4 lg:pl-6 lg:border-l">
+                    <h3 class="text-xl font-bold mb-4 pb-2 border-b-2 border-blue-500">Mais Lidas</h3>
+                    <div id="most-read-list" class="space-y-4"></div>
+                </aside>
+            </div>
+            
+            <!-- Seção de Voltar e Compartilhamento (Fim) -->
+            <div class="bg-gray-50">
+                <div class="max-w-4xl mx-auto p-4 sm:p-6 md:p-8">
+                    <div class="pt-6 border-t flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <a href="#/" class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-semibold">
+                            <i class="fas fa-arrow-left"></i>
+                            Voltar para todas as notícias
+                        </a>
+                        <div class="flex items-center gap-3">
+                             <h3 class="font-bold text-lg hidden sm:block">Compartilhe:</h3>
+                             <div id="share-buttons-bottom" class="flex items-center gap-4"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="login-template">
+        <div id="login-view" class="max-w-md mx-auto mt-10">
+            <div class="bg-white p-8 rounded-xl shadow-lg">
+                <div class="text-center mb-8">
+                    <i class="fa-solid fa-newspaper text-blue-500 text-4xl"></i>
+                    <h2 class="text-2xl font-bold mt-2">Painel Administrativo</h2>
+                    <p class="text-gray-500">Faça login para continuar</p>
+                </div>
+                <form id="login-form">
+                    <div class="mb-4">
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="mb-6">
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+                        <input type="password" id="password" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <button type="submit" class="w-full bg-blue-500 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-600 transition-colors">
+                        Entrar
+                    </button>
+                    <p id="login-error" class="text-red-500 text-sm mt-4 text-center"></p>
+                </form>
+            </div>
+        </div>
+    </template>
+
+    <template id="admin-template">
+        <div id="admin-view" class="flex flex-col lg:flex-row gap-8">
+             <!-- Sidebar -->
+            <aside class="w-full lg:w-64 bg-white p-6 rounded-lg shadow-lg self-start flex-shrink-0">
+                <h2 class="text-xl font-bold mb-6">Menu</h2>
+                <nav id="admin-nav" class="space-y-2">
+                    <a href="#/admin/dashboard" class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                        <i class="fa-solid fa-chart-line w-5 text-center"></i> Dashboard
+                    </a>
+                    <a href="#/admin/articles" class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                        <i class="fa-solid fa-file-alt w-5 text-center"></i> Organizar Matérias
+                    </a>
+                     <a href="#/admin/articles/new" class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                        <i class="fa-solid fa-plus w-5 text-center"></i> Nova Matéria
+                    </a>
+                    <a href="#/admin/featured" class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                        <i class="fa-solid fa-star w-5 text-center"></i> Destaques da Home
+                    </a>
+                    <button id="logout-btn" class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-gray-700 hover:bg-red-50 hover:text-red-600 w-full mt-4">
+                        <i class="fa-solid fa-sign-out-alt w-5 text-center"></i> Sair
+                    </button>
+                </nav>
+            </aside>
+            <!-- Content -->
+            <div id="admin-content" class="w-full">
+                <!-- Admin content será injetado aqui -->
+            </div>
+        </div>
+    </template>
+
+    <template id="admin-dashboard-template">
+        <div class="space-y-6">
+            <div class="bg-white p-8 rounded-lg shadow-lg">
+                <h1 class="text-3xl font-bold mb-2">Bem-vindo ao Painel!</h1>
+                <p class="text-gray-600">Este é o centro de controle do seu Blog de Notícias. Aqui está um guia rápido para começar:</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 text-center">
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <i class="fa-solid fa-star text-2xl text-blue-500 mb-2"></i>
+                        <h3 class="font-bold">1. Destaques da Home</h3>
+                        <p class="text-sm text-gray-600">Escolha a matéria principal que aparece no topo do site e as 5 manchetes relacionadas.</p>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <i class="fa-solid fa-file-alt text-2xl text-green-500 mb-2"></i>
+                        <h3 class="font-bold">2. Organizar Matérias</h3>
+                        <p class="text-sm text-gray-600">Defina a ordem e o agrupamento das outras notícias no feed principal e na barra lateral.</p>
+                    </div>
+                     <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                        <i class="fa-solid fa-plus text-2xl text-indigo-500 mb-2"></i>
+                        <h3 class="font-bold">3. Nova Matéria</h3>
+                        <p class="text-sm text-gray-600">Crie e edite suas notícias usando o editor de texto completo.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white p-8 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-bold mb-6">Estatísticas</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4">Matérias Mais Lidas</h3>
+                        <canvas id="most-read-chart"></canvas>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4">Canais de Compartilhamento (Exemplo)</h3>
+                        <canvas id="share-channels-chart"></canvas>
+                    </div>
+                </div>
+                <div class="mt-8">
+                    <button id="export-pdf-btn" class="bg-green-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-600 transition-colors flex items-center gap-2">
+                        <i class="fa-solid fa-file-pdf"></i>
+                        Exportar Relatório PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+    
+    <template id="admin-articles-list-template">
+         <div class="bg-white p-8 rounded-lg shadow-lg">
+            <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
+                <h1 class="text-3xl font-bold">Organizar Página Inicial</h1>
+                <button id="save-order-btn" class="bg-green-500 text-white px-5 py-2 rounded-lg font-semibold hover:bg-green-600 transition-colors flex items-center gap-2">
+                    <i class="fa-solid fa-save"></i> Salvar Organização
+                </button>
+            </div>
+            <p class="text-gray-600 mb-8">Aqui você define a ordem e o agrupamento das matérias no feed principal e na barra lateral. Matérias já utilizadas em um local ficarão desabilitadas para seleção em outros.</p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Coluna para Blocos do Feed -->
+                <div class="lg:col-span-2">
+                    <div class="flex flex-wrap gap-4 justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold">Feed Principal (Blocos)</h2>
+                        <button id="add-feed-block-btn" class="bg-blue-500 text-white px-4 py-2 text-sm rounded-lg font-semibold hover:bg-blue-600 transition-colors flex items-center gap-2">
+                            <i class="fa-solid fa-plus"></i> Adicionar Bloco
+                        </button>
+                    </div>
+                    <p class="text-sm text-gray-500 mb-4">Cada bloco representa um par de notícias na home: uma principal com imagem e uma secundária (opcional) só com título. Arraste os blocos pela alça <i class="fas fa-grip-vertical"></i> para reordenar.</p>
+                    <div id="feed-blocks-container" class="space-y-4 p-4 bg-gray-50 rounded-lg min-h-[400px]">
+                        <!-- Blocos serão injetados aqui -->
+                    </div>
+                </div>
+
+                <!-- Coluna para Barra Lateral e Disponíveis -->
+                <div class="lg:col-span-1 space-y-8">
+                    <div>
+                        <h2 class="text-xl font-bold mb-4">Barra Lateral (Assuntos em Alta)</h2>
+                        <div id="sidebar-list" class="drop-zone bg-gray-50 p-4 rounded-lg min-h-[200px] space-y-3">
+                            <!-- Itens da sidebar aqui -->
+                        </div>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold mb-4">Matérias Disponíveis</h2>
+                         <p class="text-sm text-gray-500 mb-4">Arraste uma matéria para a "Barra Lateral". Para usar no feed, selecione dentro de um "Bloco".</p>
+                        <div id="available-articles-list" class="drop-zone bg-gray-100 p-4 rounded-lg min-h-[200px] space-y-3 max-h-[400px] overflow-y-auto no-scrollbar">
+                            <!-- Itens disponíveis aqui -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+    
+    <template id="admin-featured-settings-template">
+        <div class="bg-white p-8 rounded-lg shadow-lg">
+            <h1 class="text-3xl font-bold mb-6">Gerenciar Destaques da Página Inicial</h1>
+            <form id="featured-form">
+                <div class="space-y-8">
+                    <!-- Matéria Principal -->
+                    <div>
+                        <label for="main-article-select" class="block text-lg font-bold text-gray-800 mb-2">Matéria Principal em Destaque</label>
+                        <p class="text-sm text-gray-500 mb-2">Escolha qual matéria será a principal na página inicial.</p>
+                        <select id="main-article-select" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"></select>
+                    </div>
+
+                    <!-- Matérias Relacionadas -->
+                    <div>
+                        <label class="block text-lg font-bold text-gray-800 mb-2">Matérias Relacionadas</label>
+                         <p class="text-sm text-gray-500 mb-2">Escolha as 5 matérias que aparecerão como tópicos abaixo da principal.</p>
+                        <div id="related-articles-container" class="space-y-4">
+                            <!-- Selects serão injetados aqui -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end mt-8">
+                    <button type="submit" class="bg-blue-500 text-white px-8 py-2.5 rounded-lg font-semibold hover:bg-blue-600 transition-colors">
+                        Salvar Destaques
+                    </button>
+                </div>
+            </form>
+        </div>
+    </template>
+
+    <template id="admin-article-editor-template">
+        <div class="bg-white p-8 rounded-lg shadow-lg">
+            <h1 id="editor-title" class="text-3xl font-bold mb-6"></h1>
+            <form id="article-form">
+                <input type="hidden" id="article-id">
+                <div class="mb-4">
+                    <label for="title" class="block text-sm font-bold text-gray-700 mb-1">Título</label>
+                    <input type="text" id="title" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label for="subtitle" class="block text-sm font-bold text-gray-700 mb-1">Subtítulo</label>
+                    <input type="text" id="subtitle" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label for="image-url" class="block text-sm font-bold text-gray-700 mb-1">URL da Imagem de Destaque</label>
+                    <input type="url" id="image-url" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
+                </div>
+                 <div class="mb-4">
+                    <label for="author" class="block text-sm font-bold text-gray-700 mb-1">Autor</label>
+                    <input type="text" id="author" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" value="Redação" required>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Conteúdo</label>
+                    <div id="editor-container">
+                        <div id="editor" class="h-96 border border-gray-300 rounded-lg"></div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">
+                        <i class="fa-solid fa-info-circle mr-1"></i>
+                        A inserção de imagens diretamente no corpo do texto não é suportada; use o campo "URL da Imagem de Destaque" acima para a imagem principal da matéria.
+                    </p>
+                </div>
+                <div class="flex justify-between items-center">
+                    <div>
+                         <label class="relative inline-flex items-center cursor-pointer">
+                          <input type="checkbox" id="publish-status" class="sr-only peer">
+                          <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                          <span class="ml-3 text-sm font-medium text-gray-900">Publicar Matéria</span>
+                        </label>
+                    </div>
+                    <div class="flex gap-4">
+                        <button type="button" id="delete-btn" class="text-red-600 hover:text-red-800 font-semibold hidden">Excluir</button>
+                        <a href="#/admin/articles" class="bg-gray-200 text-gray-800 px-6 py-2.5 rounded-lg font-semibold hover:bg-gray-300 transition-colors">Cancelar</a>
+                        <button type="submit" class="bg-blue-500 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-600 transition-colors">Salvar Matéria</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </template>
+    
+    <!-- ===== FIREBASE & APP LOGIC ===== -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            onAuthStateChanged, 
+            signOut 
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { 
+            getFirestore,
+            collection,
+            getDocs,
+            getDoc,
+            addDoc,
+            updateDoc,
+            deleteDoc,
+            doc,
+            setDoc,
+            query,
+            orderBy,
+            where,
+            limit,
+            serverTimestamp,
+            writeBatch,
+            increment
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // --- CONFIGURAÇÃO FIREBASE (OBRIGATÓRIA) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyB6PyScCOniRm4Yova0NVcVjq6nLhsh-qY",
+            authDomain: "seuportal-ca11c.firebaseapp.com",
+            projectId: "seuportal-ca11c",
+            storageBucket: "seuportal-ca11c.appspot.com",
+            messagingSenderId: "95101263713",
+            appId: "1:95101263713:web:e39f1ef302814593d8ef20",
+            measurementId: "G-T18TCZTVKJ"
+        };
+        
+        // --- INICIALIZAÇÃO FIREBASE ---
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const articlesCollection = collection(db, 'articles');
+        const appRoot = document.getElementById('app-root');
+        const loader = document.getElementById('loader');
+
+        let quill; // Instância global do Quill
+        let charts = {}; // Para armazenar instâncias de gráficos
+
+        // --- ROTEADOR ---
+        const router = async () => {
+            appRoot.innerHTML = '';
+            loader.style.display = 'block';
+
+            const path = location.hash.split('/');
+            const view = path[1] || '';
+            const id = path[2] || '';
+            const action = path[3] || '';
+
+            try {
+                if (view === 'admin') {
+                    await handleAdminRouting(id, action);
+                } else if (view === 'noticia') {
+                    await renderArticlePage(id);
+                } else {
+                    await renderHomePage();
+                }
+            } catch (error) {
+                console.error("Erro no roteamento:", error);
+                appRoot.innerHTML = `<p class="text-center text-red-500">Ocorreu um erro ao carregar a página. Tente novamente.</p>`;
+            } finally {
+                loader.style.display = 'none';
+                window.scrollTo(0, 0);
+            }
+        };
+        
+        // --- FUNÇÕES DE RENDERIZAÇÃO DE VIEWS ---
+
+        const renderTemplate = (templateId, targetElement) => {
+            const template = document.getElementById(templateId);
+            if(template) {
+                const clone = template.content.cloneNode(true);
+                targetElement.appendChild(clone);
+                return true;
+            }
+            return false;
+        }
+        
+        const renderHomePage = async () => {
+            if (!renderTemplate('home-template', appRoot)) return;
+
+            updateMetaTags(
+                'Blog de Notícias',
+                'As últimas notícias do Brasil e do mundo, com credibilidade.',
+                'https://i.postimg.cc/9F7d9T5G/newspaper-icon.png', // Logo URL
+                 window.location.href.split('#')[0]
+            );
+
+            const articlesSnapshot = await getDocs(articlesCollection);
+            const allArticles = articlesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            // 1. Busca Destaques
+            const settingsSnap = await getDoc(doc(db, 'settings', 'homepage'));
+            let featuredArticle = null;
+            let relatedArticles = [];
+            let featuredIds = new Set();
+
+            if (settingsSnap.exists() && settingsSnap.data().featuredArticleId) {
+                const settings = settingsSnap.data();
+                featuredArticle = allArticles.find(a => a.id === settings.featuredArticleId);
+                relatedArticles = (settings.relatedArticleIds || []).map(id => allArticles.find(a => a.id === id)).filter(Boolean);
+                featuredIds = new Set([settings.featuredArticleId, ...(settings.relatedArticleIds || [])]);
+            } else {
+                 // Fallback se não houver destaques definidos
+                let publishedArticles = allArticles.filter(a => a.published).sort((a,b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
+                if (publishedArticles.length > 0) {
+                    featuredArticle = publishedArticles.shift();
+                    relatedArticles = publishedArticles.splice(0, 5);
+                    featuredIds = new Set([featuredArticle.id, ...relatedArticles.map(a => a.id)]);
+                }
+            }
+            const mainBlockPlaceholder = document.getElementById('main-block-placeholder');
+            if (featuredArticle) mainBlockPlaceholder.innerHTML = createNewMainArticleHTML(featuredArticle, relatedArticles);
+            
+            // 2. Busca Ordem do Feed
+            const orderSnap = await getDoc(doc(db, 'settings', 'homepageOrder'));
+            let mainFeedArticles = [];
+            let sidebarArticles = [];
+            const orderSettings = orderSnap.exists() ? orderSnap.data() : {};
+
+            if (orderSettings.mainFeedBlocks?.length > 0 || orderSettings.sidebarOrder?.length > 0) {
+                const mainFeedBlocks = orderSettings.mainFeedBlocks || [];
+                mainFeedBlocks.forEach(block => {
+                    const primary = allArticles.find(a => a.id === block.primaryId && a.published && !featuredIds.has(a.id));
+                    const secondary = block.secondaryId ? allArticles.find(a => a.id === block.secondaryId && a.published && !featuredIds.has(a.id)) : null;
+                    if(primary) mainFeedArticles.push({primary, secondary});
+                });
+                sidebarArticles = (orderSettings.sidebarOrder || []).map(id => allArticles.find(a => a.id === id)).filter(a => a && a.published && !featuredIds.has(a.id));
+            } else {
+                let remainingArticles = allArticles.filter(a => a.published && !featuredIds.has(a.id)).sort((a,b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
+                sidebarArticles = remainingArticles.splice(0, 4);
+                 while(remainingArticles.length > 0){
+                    mainFeedArticles.push({primary: remainingArticles.shift(), secondary: remainingArticles.shift()});
+                }
+            }
+
+            // 3. Renderiza o Feed
+            const feedContainer = document.getElementById('feed-container-placeholder');
+            feedContainer.innerHTML = '';
+            const mainColumn = document.createElement('div');
+            mainColumn.className = 'lg:col-span-2 space-y-8';
+            const sidebarColumn = document.createElement('aside');
+            sidebarColumn.className = 'lg:col-span-1 space-y-6 self-start lg:sticky lg:top-24';
+            
+            mainFeedArticles.forEach(block => {
+                mainColumn.innerHTML += createFeedBlockHTML(block.primary, block.secondary);
+            });
+
+            if (sidebarArticles.length > 0) {
+                sidebarColumn.innerHTML += '<h2 class="text-xl font-bold border-b-2 border-blue-500 pb-2">Assuntos em Alta</h2>';
+                sidebarArticles.forEach(article => sidebarColumn.innerHTML += createSidebarArticleHTML(article));
+            }
+            
+            feedContainer.appendChild(mainColumn);
+            feedContainer.appendChild(sidebarColumn);
+        };
+        
+        const renderArticlePage = async (id) => {
+            if (!id) { location.hash = '#/'; return; }
+            if (!renderTemplate('article-template', appRoot)) return;
+
+            const articleRef = doc(db, 'articles', id);
+            await updateDoc(articleRef, { views: increment(1) }).catch(console.error);
+            const articleSnap = await getDoc(articleRef);
+
+            if (!articleSnap.exists()) {
+                appRoot.innerHTML = `<p class="text-center text-red-500">Artigo não encontrado.</p>`;
+                return;
+            }
+            const article = { id: articleSnap.id, ...articleSnap.data() };
+
+            updateMetaTags(
+                article.title,
+                article.subtitle,
+                article.imageUrl,
+                window.location.href
+            );
+
+            document.getElementById('article-title').textContent = article.title;
+            document.getElementById('article-subtitle').textContent = article.subtitle;
+            document.getElementById('article-author').textContent = `Por ${article.author || 'Redação'}`;
+            document.getElementById('article-date').textContent = formatDate(article.createdAt);
+            document.getElementById('article-image').src = article.imageUrl;
+            document.getElementById('article-image').alt = article.title;
+            document.getElementById('article-image-caption').textContent = article.title;
+            document.getElementById('article-content').innerHTML = article.content;
+
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = article.content;
+            const textContent = tempDiv.textContent || tempDiv.innerText || "";
+            const wordCount = textContent.trim().split(/\s+/).length;
+            const readingTime = Math.ceil(wordCount / 225);
+            document.getElementById('reading-time').querySelector('span').textContent = `${readingTime} min de leitura`;
+
+            renderShareButtons(article, 'share-buttons-top');
+            renderShareButtons(article, 'share-buttons-bottom');
+            renderMostReadList(id);
+        };
+
+        const renderMostReadList = async (currentArticleId) => {
+            const snapshot = await getDocs(articlesCollection);
+            const allArticles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const mostRead = allArticles
+                .sort((a, b) => (b.views || 0) - (a.views || 0))
+                .filter(article => article.id !== currentArticleId && article.published)
+                .slice(0, 5);
+            document.getElementById('most-read-list').innerHTML = mostRead.map(article => `
+                <a href="#/noticia/${article.id}" class="block group">
+                    <p class="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">${article.title}</p>
+                    <p class="text-sm text-gray-500">${article.subtitle}</p>
+                </a>
+            `).join('');
+        };
+        
+        const renderShareButtons = (article, containerId) => {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const url = encodeURIComponent(window.location.href);
+            const title = encodeURIComponent(article.title);
+            const shareButtons = {
+                'WhatsApp': { icon: 'fa-whatsapp', color: 'bg-green-500', url: `https://api.whatsapp.com/send?text=${title}%20${url}`},
+                'Facebook': { icon: 'fa-facebook-f', color: 'bg-blue-800', url: `https://www.facebook.com/sharer/sharer.php?u=${url}`},
+                'X': { icon: 'fa-x-twitter', color: 'bg-black', url: `https://twitter.com/intent/tweet?url=${url}&text=${title}`},
+                'E-mail': { icon: 'fa-envelope', color: 'bg-gray-500', url: `mailto:?subject=${title}&body=Confira esta matéria:%20${url}`},
+            };
+            const iconSizeClass = containerId === 'share-buttons-top' ? 'w-8 h-8 text-sm' : 'w-10 h-10 text-lg';
+            let buttonsHTML = Object.entries(shareButtons).map(([name, data]) => `<a href="${data.url}" target="_blank" rel="noopener noreferrer" title="Compartilhar no ${name}" class="rounded-full ${data.color} text-white flex items-center justify-center hover:opacity-80 transition-opacity ${iconSizeClass}"><i class="fab ${data.icon}"></i></a>`).join('');
+            buttonsHTML += `<button title="Copiar link" class="copy-link-btn rounded-full bg-blue-500 text-white flex items-center justify-center hover:opacity-80 transition-opacity ${iconSizeClass}"><i class="fas fa-link"></i></button>`;
+            container.innerHTML = buttonsHTML;
+            container.querySelectorAll('.copy-link-btn').forEach(btn => btn.addEventListener('click', copyArticleLink));
+        };
+
+        const handleAdminRouting = async (page, action) => {
+            const user = auth.currentUser;
+            if (!user) {
+                if (!renderTemplate('login-template', appRoot)) return;
+                document.getElementById('login-form').addEventListener('submit', handleLogin);
+                return;
+            }
+            if (!renderTemplate('admin-template', appRoot)) return;
+            const adminContent = document.getElementById('admin-content');
+            document.getElementById('logout-btn').addEventListener('click', handleLogout);
+            updateAdminNavActiveState(`#/admin/${page}`);
+
+            if (page === 'articles' && action === 'new') await renderArticleEditor();
+            else if (page === 'articles' && action) await renderArticleEditor(action);
+            else if (page === 'articles') await renderAdminArticlesList(adminContent);
+            else if (page === 'featured') await renderFeaturedSettingsPage(adminContent);
+            else await renderAdminDashboard(adminContent);
+        };
+
+        const renderAdminDashboard = async (container) => {
+            if (!renderTemplate('admin-dashboard-template', container)) return;
+            const snapshot = await getDocs(articlesCollection);
+            const articles = snapshot.docs.map(doc => doc.data()).sort((a,b) => (b.views || 0) - (a.views || 0));
+            Object.values(charts).forEach(chart => chart.destroy());
+            charts.mostRead = new Chart(document.getElementById('most-read-chart').getContext('2d'), { type: 'bar', data: { labels: articles.slice(0, 7).map(a => a.title.substring(0,20)+'...'), datasets: [{ label: 'Visualizações', data: articles.slice(0, 7).map(a => a.views || 0), backgroundColor: 'rgba(59, 130, 246, 0.7)' }] }, options: { responsive: true, indexAxis: 'y' } });
+            charts.shareChannels = new Chart(document.getElementById('share-channels-chart').getContext('2d'), { type: 'pie', data: { labels: ['WhatsApp', 'Facebook', 'Twitter', 'E-mail', 'Outros'], datasets: [{ data: [120, 80, 50, 30, 20], backgroundColor: ['#25D366', '#1877F2', '#000000', '#6B7280', '#9CA3AF'] }] }, options: { responsive: true } });
+            document.getElementById('export-pdf-btn').addEventListener('click', () => exportArticlesToPDF(articles));
+        };
+
+        const renderAdminArticlesList = async (container) => {
+            if (!renderTemplate('admin-articles-list-template', container)) return;
+            
+            const articlesSnapshot = await getDocs(query(articlesCollection, where('published', '==', true)));
+            const allArticles = articlesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => a.title.localeCompare(b.title));
+            
+            const orderSnap = await getDoc(doc(db, 'settings', 'homepageOrder'));
+            const savedSettings = orderSnap.exists() ? orderSnap.data() : { mainFeedBlocks: [], sidebarOrder: [] };
+            
+            const feedBlocksContainer = document.getElementById('feed-blocks-container');
+            const sidebarList = document.getElementById('sidebar-list');
+            const availableList = document.getElementById('available-articles-list');
+            
+            const createAdminFeedBlockHTML = (block = {}, blockIndex) => {
+                const primaryId = block.primaryId || '';
+                const secondaryId = block.secondaryId || '';
+                const div = document.createElement('div');
+                div.className = 'feed-block draggable bg-white p-4 rounded-lg shadow border';
+                div.setAttribute('draggable', 'true');
+                div.dataset.blockIndex = blockIndex;
+                div.innerHTML = `
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="font-bold text-gray-500 flex items-center gap-2"><i class="fas fa-grip-vertical cursor-move"></i> Bloco de Notícia #${blockIndex + 1}</span>
+                        <button class="remove-block-btn text-red-500 hover:text-red-700" title="Remover Bloco"><i class="fas fa-trash"></i></button>
+                    </div>
+                    <div class="space-y-2">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600">Principal (com imagem):</label>
+                            <select class="primary-article-select w-full p-2 border border-gray-300 rounded-md text-sm">
+                                <option value="">-- Selecione --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600">Secundária (só título):</label>
+                            <select class="secondary-article-select w-full p-2 border border-gray-300 rounded-md text-sm">
+                                <option value="">-- Nenhuma (opcional) --</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+                div.querySelector('.remove-block-btn').addEventListener('click', () => {
+                    div.remove();
+                    window.updateAvailableArticles();
+                });
+                div.querySelectorAll('select').forEach(sel => sel.addEventListener('change', window.updateAvailableArticles));
+                return { element: div, primaryId, secondaryId };
+            };
+
+            const createArticleItemHTML = (article) => {
+                const div = document.createElement('div');
+                div.className = 'draggable bg-white p-3 rounded-lg shadow border flex justify-between items-center';
+                div.setAttribute('draggable', 'true');
+                div.dataset.id = article.id;
+                div.innerHTML = `<span class="font-medium text-sm">${article.title}</span><i class="fas fa-grip-vertical text-gray-400"></i>`;
+                return div;
+            };
+
+            window.updateAvailableArticles = () => {
+                // 1. Get all currently used article IDs
+                const usedInBlocks = new Set();
+                document.querySelectorAll('.feed-block').forEach(block => {
+                    const primary = block.querySelector('.primary-article-select').value;
+                    const secondary = block.querySelector('.secondary-article-select').value;
+                    if (primary) usedInBlocks.add(primary);
+                    if (secondary) usedInBlocks.add(secondary);
+                });
+                const usedInSidebar = new Set(Array.from(sidebarList.querySelectorAll('.draggable')).map(item => item.dataset.id));
+                const allUsedIds = new Set([...usedInBlocks, ...usedInSidebar]);
+
+                // 2. Update available list
+                availableList.innerHTML = '';
+                allArticles.forEach(article => {
+                    if (!allUsedIds.has(article.id)) {
+                        availableList.appendChild(createArticleItemHTML(article));
+                    }
+                });
+
+                // 3. Update all dropdowns in blocks
+                document.querySelectorAll('.feed-block').forEach(block => {
+                    const primarySelect = block.querySelector('.primary-article-select');
+                    const secondarySelect = block.querySelector('.secondary-article-select');
+                    const currentPrimary = primarySelect.value;
+                    const currentSecondary = secondarySelect.value;
+
+                    primarySelect.innerHTML = '<option value="">-- Selecione --</option>';
+                    secondarySelect.innerHTML = '<option value="">-- Nenhuma (opcional) --</option>';
+
+                    allArticles.forEach(article => {
+                        // For Primary Select
+                        if (!allUsedIds.has(article.id) || article.id === currentPrimary) {
+                            primarySelect.innerHTML += `<option value="${article.id}">${article.title}</option>`;
+                        }
+                        // For Secondary Select
+                        if (!allUsedIds.has(article.id) || article.id === currentSecondary) {
+                            secondarySelect.innerHTML += `<option value="${article.id}">${article.title}</option>`;
+                        }
+                    });
+                    primarySelect.value = currentPrimary;
+                    secondarySelect.value = currentSecondary;
+                });
+                enableDragAndDropManager();
+            };
+
+            // Initial population
+            feedBlocksContainer.innerHTML = '';
+            (savedSettings.mainFeedBlocks || []).forEach((block, index) => {
+                const { element, primaryId, secondaryId } = createAdminFeedBlockHTML(block, index);
+                feedBlocksContainer.appendChild(element);
+                element.querySelector('.primary-article-select').value = primaryId;
+                element.querySelector('.secondary-article-select').value = secondaryId;
+            });
+            sidebarList.innerHTML = '';
+            (savedSettings.sidebarOrder || []).forEach(id => {
+                const article = allArticles.find(a => a.id === id);
+                if (article) sidebarList.appendChild(createArticleItemHTML(article));
+            });
+
+            window.updateAvailableArticles();
+            document.getElementById('add-feed-block-btn').addEventListener('click', () => {
+                const blockCount = document.querySelectorAll('.feed-block').length;
+                const { element } = createAdminFeedBlockHTML({}, blockCount);
+                feedBlocksContainer.appendChild(element);
+                window.updateAvailableArticles();
+            });
+
+            document.getElementById('save-order-btn').addEventListener('click', saveHomepageOrder);
+        };
+
+        const renderFeaturedSettingsPage = async (container) => {
+            if (!renderTemplate('admin-featured-settings-template', container)) return;
+            const articlesSnapshot = await getDocs(query(articlesCollection, where('published', '==', true)));
+            const allArticles = articlesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+                .sort((a, b) => a.title.localeCompare(b.title));
+            const optionsHTML = allArticles.map(a => `<option value="${a.id}">${a.title}</option>`).join('');
+            const mainSelect = document.getElementById('main-article-select');
+            mainSelect.innerHTML = `<option value="">-- Selecione uma matéria --</option>${optionsHTML}`;
+            const relatedContainer = document.getElementById('related-articles-container');
+            relatedContainer.innerHTML = Array.from({length: 5}, (_, i) => `
+                 <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tópico Relacionado #${i + 1}</label>
+                    <select class="related-article-select w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">-- Selecione a ${i + 1}ª matéria --</option>${optionsHTML}
+                    </select>
+                </div>`).join('');
+            const settingsSnap = await getDoc(doc(db, 'settings', 'homepage'));
+            if (settingsSnap.exists()) {
+                const settings = settingsSnap.data();
+                if (settings.featuredArticleId) mainSelect.value = settings.featuredArticleId;
+                if (settings.relatedArticleIds) {
+                    const relatedSelects = relatedContainer.querySelectorAll('select');
+                    settings.relatedArticleIds.forEach((id, index) => { if (relatedSelects[index]) relatedSelects[index].value = id; });
+                }
+            }
+            document.getElementById('featured-form').addEventListener('submit', handleSaveFeaturedSettings);
+        };
+        
+        const renderArticleEditor = async (id = null) => {
+            const adminContent = document.getElementById('admin-content');
+            if (!renderTemplate('admin-article-editor-template', adminContent)) return;
+            const editorTitle = document.getElementById('editor-title');
+            const form = document.getElementById('article-form');
+            const articleIdField = document.getElementById('article-id');
+            const titleField = document.getElementById('title');
+            const subtitleField = document.getElementById('subtitle');
+            const imageUrlField = document.getElementById('image-url');
+            const authorField = document.getElementById('author');
+            const publishToggle = document.getElementById('publish-status');
+            const deleteBtn = document.getElementById('delete-btn');
+            
+            const fullToolbarOptions = [
+                [{ 'font': [] }, { 'size': ['small', false, 'large', 'huge'] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'script': 'sub'}, { 'script': 'super' }],
+                [{ 'header': 1 }, { 'header': 2 }, 'blockquote', 'code-block'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'indent': '-1'}, { 'indent': '+1' }],
+                [{ 'direction': 'rtl' }, { 'align': [] }],
+                ['link', 'image', 'video'],
+                ['clean']
+            ];
+
+            quill = new Quill('#editor', {
+                modules: { toolbar: fullToolbarOptions },
+                theme: 'snow'
+            });
+
+            if (id) {
+                editorTitle.textContent = 'Editar Matéria';
+                deleteBtn.classList.remove('hidden');
+                deleteBtn.addEventListener('click', () => deleteArticle(id));
+
+                const docSnap = await getDoc(doc(db, 'articles', id));
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    articleIdField.value = id; 
+                    titleField.value = data.title; 
+                    subtitleField.value = data.subtitle;
+                    imageUrlField.value = data.imageUrl; 
+                    authorField.value = data.author || 'Redação';
+                    quill.root.innerHTML = data.content;
+                    publishToggle.checked = data.published;
+                }
+            } else { 
+                editorTitle.textContent = 'Nova Matéria'; 
+                publishToggle.checked = true;
+            }
+            form.addEventListener('submit', saveArticle);
+        };
+        
+        const handleLogin = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorElement = document.getElementById('login-error');
+            errorElement.textContent = '';
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                await checkAndSeedDatabase();
+                location.hash = '#/admin/dashboard';
+            } catch (error) { errorElement.textContent = 'Email ou senha inválidos.'; }
+        };
+
+        const handleLogout = async () => { await signOut(auth); location.hash = '#/admin'; };
+
+        const handleSaveFeaturedSettings = async (e) => {
+            e.preventDefault();
+            const featuredArticleId = document.getElementById('main-article-select').value;
+            const relatedArticleIds = Array.from(document.querySelectorAll('.related-article-select')).map(select => select.value).filter(Boolean);
+            if (!featuredArticleId) { showToast('Por favor, selecione uma matéria principal.', 'bg-red-500'); return; }
+            try {
+                await setDoc(doc(db, 'settings', 'homepage'), { featuredArticleId, relatedArticleIds });
+                showToast('Destaques da página inicial salvos com sucesso!', 'bg-green-500');
+            } catch (error) { showToast('Ocorreu um erro ao salvar os destaques.', 'bg-red-500'); }
+        };
+
+        const saveArticle = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('article-id').value;
+            const articleData = {
+                title: document.getElementById('title').value,
+                subtitle: document.getElementById('subtitle').value,
+                imageUrl: document.getElementById('image-url').value,
+                author: document.getElementById('author').value,
+                content: quill.root.innerHTML,
+                published: document.getElementById('publish-status').checked,
+                updatedAt: serverTimestamp(),
+            };
+            try {
+                if (id) {
+                    await updateDoc(doc(db, 'articles', id), articleData);
+                    showToast('Matéria atualizada com sucesso!', 'bg-green-500');
+                } else {
+                    articleData.createdAt = serverTimestamp();
+                    articleData.views = 0;
+                    await addDoc(articlesCollection, articleData);
+                    showToast('Matéria criada com sucesso!', 'bg-green-500');
+                }
+                location.hash = '#/admin/articles';
+            } catch (error) { showToast('Erro ao salvar matéria.', 'bg-red-500'); }
+        };
+        
+        const saveHomepageOrder = async () => {
+            const mainFeedBlocks = Array.from(document.querySelectorAll('#feed-blocks-container .feed-block')).map(block => {
+                return {
+                    primaryId: block.querySelector('.primary-article-select').value,
+                    secondaryId: block.querySelector('.secondary-article-select').value || null
+                }
+            }).filter(b => b.primaryId);
+
+            const sidebarOrder = Array.from(document.querySelectorAll('#sidebar-list .draggable')).map(card => card.dataset.id);
+
+            const allUsedIds = [...sidebarOrder];
+            mainFeedBlocks.forEach(b => {
+                if (b.primaryId) allUsedIds.push(b.primaryId);
+                if (b.secondaryId) allUsedIds.push(b.secondaryId);
+            });
+            const hasDuplicates = new Set(allUsedIds).size !== allUsedIds.length;
+            if(hasDuplicates) {
+                showToast('Erro: Uma matéria não pode ser usada em mais de um lugar.', 'bg-red-500');
+                return;
+            }
+
+            try {
+                await setDoc(doc(db, 'settings', 'homepageOrder'), { mainFeedBlocks, sidebarOrder });
+                showToast('Organização da página inicial salva com sucesso!', 'bg-green-500');
+            } catch (error) {
+                console.error("Erro ao salvar a ordem: ", error);
+                showToast('Erro ao salvar a organização.', 'bg-red-500');
+            }
+        };
+
+        const deleteArticle = async (id) => {
+            if (confirm('Tem certeza que deseja excluir esta matéria? Esta ação não pode ser desfeita.')) {
+                try {
+                    await deleteDoc(doc(db, 'articles', id));
+                    showToast('Matéria excluída com sucesso!', 'bg-green-500');
+                    location.hash = '#/admin/articles';
+                } catch (error) { showToast('Erro ao excluir matéria.', 'bg-red-500'); }
+            }
+        };
+        
+        const enableDragAndDropManager = () => {
+            let draggedItem = null;
+            const containers = document.querySelectorAll('.drop-zone, #feed-blocks-container');
+
+            document.querySelectorAll('.draggable').forEach(item => {
+                item.addEventListener('dragstart', (e) => {
+                    draggedItem = e.target.closest('.draggable');
+                    setTimeout(() => draggedItem.classList.add('dragging'), 0);
+                });
+                item.addEventListener('dragend', () => {
+                    if (draggedItem) {
+                        draggedItem.classList.remove('dragging');
+                        draggedItem = null;
+                    }
+                });
+            });
+
+            containers.forEach(container => {
+                container.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    if (container.id !== 'available-articles-list' || draggedItem.parentElement.id !== 'available-articles-list') {
+                        container.classList.add('drag-over');
+                    }
+                    const afterElement = getDragAfterElement(container, e.clientY);
+                    if (draggedItem) {
+                        if (afterElement == null) {
+                            container.appendChild(draggedItem);
+                        } else {
+                            container.insertBefore(draggedItem, afterElement);
+                        }
+                    }
+                });
+                container.addEventListener('dragleave', () => container.classList.remove('drag-over'));
+                container.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    container.classList.remove('drag-over');
+                    if (typeof window.updateAvailableArticles === 'function') {
+                         window.updateAvailableArticles(); 
+                    }
+                });
+            });
+
+            const getDragAfterElement = (container, y) => {
+                const draggableElements = [...container.querySelectorAll('.draggable:not(.dragging)')];
+                return draggableElements.reduce((closest, child) => {
+                    const box = child.getBoundingClientRect();
+                    const offset = y - box.top - box.height / 2;
+                    if (offset < 0 && offset > closest.offset) {
+                        return { offset: offset, element: child };
+                    } else {
+                        return closest;
+                    }
+                }, { offset: Number.NEGATIVE_INFINITY }).element;
+            };
+        };
+
+        // --- CÓDIGO DE SEED E FUNÇÕES UTILITÁRIAS ---
+        const checkAndSeedDatabase = async () => {
+            const articlesSnapshot = await getDocs(query(articlesCollection, limit(1)));
+            if (!articlesSnapshot.empty) { return; }
+
+            console.log("Populando banco de dados com notícias de exemplo...");
+            const sampleArticles = [
+                { title: "EY fatura 30% mais com projetos em inteligência artificial", subtitle: "Consultoria global aposta em AI para expandir serviços corporativos.", imageUrl: "https://i.postimg.cc/dtc51yDs/Gemini-Generated-Image-dq8bgedq8bgedq8b.png" },
+                { title: "Weg assume controle da Tupi Mob e avança em mobilidade elétrica", subtitle: "Empresa brasileira amplia atuação no setor de veículos elétricos.", imageUrl: "https://i.postimg.cc/43Rcv6kT/Gemini-Generated-Image-dq8bgedq8bgedq8b-1.png" },
+                { title: "Brasil propõe meta global para uso de biocombustíveis", subtitle: "País pleiteia quadruplemento da produção de combustíveis sustentáveis.", imageUrl: "https://i.postimg.cc/wTKsY5MW/Gemini-Generated-Image-dq8bgedq8bgedq8b-2.png" },
+                { title: "Governo avalia incentivos para minerais estratégicos", subtitle: "Medidas visam impulsionar industrialização de recursos para tecnologias verdes.", imageUrl: "https://i.postimg.cc/T2NCV4kh/Gemini-Generated-Image-dq8bgedq8bgedq8b-3.png" },
+                { title: "Nova tecnologia de baterias pode revolucionar mercado", subtitle: "Pesquisadores anunciam avanço que promete o dobro de autonomia.", imageUrl: "https://placehold.co/800x500/3182CE/FFFFFF?text=Bateria" },
+                { title: "Mercado de games deve atingir US$ 200 bilhões em 2026", subtitle: "Crescimento é impulsionado por jogos mobile e serviços de assinatura.", imageUrl: "https://placehold.co/800x500/9333ea/FFFFFF?text=Games" },
+                { title: "Cientistas descobrem nova espécie de primata na Amazônia", subtitle: "O animal foi encontrado em uma área remota e já é considerado em risco.", imageUrl: "https://placehold.co/800x500/16a34a/FFFFFF?text=Natureza" },
+                { title: "Inteligência Artificial agora consegue compor trilhas sonoras", subtitle: "Ferramenta da OpenAI cria músicas baseadas em descrições de cenas.", imageUrl: "https://placehold.co/800x500/f97316/FFFFFF?text=Música+IA" },
+                { title: "Meta anuncia novo headset de realidade virtual com foco em produtividade", subtitle: "Quest 4 Pro promete ser mais leve e poderoso para competir com Vision Pro da Apple.", imageUrl: "https://placehold.co/800x500/8b5cf6/FFFFFF?text=Meta+Quest" },
+                { title: "Startup brasileira recebe aporte de R$ 50 milhões para expandir agritech", subtitle: "Solução usa drones e IA para monitorar lavouras e otimizar o uso de insumos.", imageUrl: "https://placehold.co/800x500/22c55e/FFFFFF?text=Agritech" },
+                { title: "Crise hídrica no Sudeste: especialista alerta para necessidade de racionamento", subtitle: "Nível dos reservatórios está 20% abaixo do esperado para a época do ano.", imageUrl: "https://placehold.co/800x500/0ea5e9/FFFFFF?text=Crise+Hídrica" },
+                { title: "Festival de cinema independente premia produção nacional sobre a Amazônia", subtitle: "Documentário 'Vozes da Floresta' leva o prêmio principal do júri.", imageUrl: "https://placehold.co/800x500/f59e0b/FFFFFF?text=Cinema" },
+                { title: "Como a 'gamificação' está transformando o ambiente de trabalho corporativo", subtitle: "Empresas usam dinâmicas de jogos para aumentar engajamento e produtividade.", imageUrl: "https://placehold.co/800x500/ec4899/FFFFFF?text=Gamificação" },
+                { title: "Chef brasileira ganha prêmio internacional por restaurante sustentável em SP", subtitle: "Menu utiliza apenas ingredientes de produtores locais e combate o desperdício.", imageUrl: "https://placehold.co/800x500/6366f1/FFFFFF?text=Gastronomia" },
+                { title: "ANATEL aprova novo padrão de Wi-Fi 7 para o Brasil; veja o que muda", subtitle: "Nova tecnologia promete velocidades até 3 vezes maiores e menor latência.", imageUrl: "https://placehold.co/800x500/14b8a6/FFFFFF?text=Wi-Fi+7" },
+                { title: "Bolsa de Valores opera em alta com otimismo do mercado externo", subtitle: "Índice Ibovespa sobe 1.5% impulsionado por ações de commodities.", imageUrl: "https://placehold.co/800x500/ef4444/FFFFFF?text=B3" },
+                { title: "Telescópio James Webb descobre galáxia mais distante já observada", subtitle: "Objeto cósmico pode reescrever o que sabemos sobre o início do universo.", imageUrl: "https://placehold.co/800x500/0f172a/FFFFFF?text=Cosmos" },
+                { title: "Carro elétrico popular chega ao Brasil com promessa de preço acessível", subtitle: "Novo modelo de montadora chinesa pode custar menos de R$ 100 mil.", imageUrl: "https://placehold.co/800x500/f59e0b/FFFFFF?text=Carro+Elétrico" },
+                { title: "Cientistas desenvolvem plástico biodegradável a partir de algas marinhas", subtitle: "Inovação pode ser a chave para combater a poluição dos oceanos.", imageUrl: "https://placehold.co/800x500/10b981/FFFFFF?text=Sustentável" },
+                { title: "Governo lança novo programa de crédito para microempreendedores", subtitle: "Iniciativa visa facilitar o acesso a recursos para pequenos negócios.", imageUrl: "https://placehold.co/800x500/7c3aed/FFFFFF?text=Economia" },
+                { title: "Série baseada em livro de autor brasileiro estreia com aclamação da crítica", subtitle: "Produção é elogiada pela fidelidade à obra original e atuações.", imageUrl: "https://placehold.co/800x500/be123c/FFFFFF?text=Cultura+Pop" },
+                { title: "Pesquisa aponta que trabalho remoto híbrido é o modelo preferido", subtitle: "Flexibilidade e qualidade de vida são os principais motivos para a preferência.", imageUrl: "https://placehold.co/800x500/475569/FFFFFF?text=Trabalho" },
+                { title: "Final de eSports quebra recorde de audiência com 5 milhões de espectadores", subtitle: "Campeonato de 'Legacy of Valor' consolida o Brasil como potência no cenário.", imageUrl: "https://placehold.co/800x500/d946ef/FFFFFF?text=eSports" },
+                { title: "Turismo em cidades históricas de Minas Gerais cresce 25% em 2025", subtitle: "Retomada do setor impulsiona economia local e valoriza patrimônio cultural.", imageUrl: "https://placehold.co/800x500/ca8a04/FFFFFF?text=Turismo" },
+                { title: "Amazônia registra queda recorde no desmatamento em 2025", subtitle: "Dados do INPE apontam a menor taxa em 15 anos, resultado de fiscalização intensificada.", imageUrl: "https://placehold.co/800x500/16a34a/FFFFFF?text=Amazônia" },
+                { title: "Real Digital: Banco Central inicia nova fase de testes com grandes varejistas", subtitle: "Moeda digital brasileira, Drex, avança para testes em transações do dia a dia.", imageUrl: "https://placehold.co/800x500/0284c7/FFFFFF?text=Drex" },
+                { title: "Novo marco legal para startups é aprovado no Congresso Nacional", subtitle: "Legislação visa simplificar a criação de empresas de tecnologia e atrair investimentos.", imageUrl: "https://placehold.co/800x500/4f46e5/FFFFFF?text=Startups" },
+                { title: "Fórmula 1 confirma retorno do GP do Brasil a Jacarepaguá em 2027", subtitle: "Rio de Janeiro voltará a sediar a corrida em um circuito totalmente modernizado.", imageUrl: "https://placehold.co/800x500/dc2626/FFFFFF?text=Fórmula+1" },
+                { title: "Inteligência artificial brasileira vence competição de diagnóstico médico", subtitle: "Sistema de universidade federal superou modelos do MIT e de Stanford.", imageUrl: "https://placehold.co/800x500/db2777/FFFFFF?text=IA+Médica" },
+                { title: "Produção de hidrogênio verde no Ceará atrai investimento de 5 bi de euros", subtitle: "Estado se consolida como polo global de energia limpa com novo mega-projeto.", imageUrl: "https://placehold.co/800x500/14b8a6/FFFFFF?text=Hidrogênio" },
+                { title: "Rock in Rio anuncia edição histórica para 2026 com U2 e Pearl Jam", subtitle: "Festival comemora 40 anos com line-up que une clássicos e novas tendências.", imageUrl: "https://placehold.co/800x500/f97316/FFFFFF?text=Rock+in+Rio" },
+                { title: "Brasil lança novo satélite de observação da Amazônia com a Índia", subtitle: "CBERS-6 irá monitorar com mais precisão as mudanças climáticas e a vegetação.", imageUrl: "https://placehold.co/800x500/0891b2/FFFFFF?text=Satélite" },
+                { title: "Mercado imobiliário aquece com queda na taxa de juros", subtitle: "Redução da Selic impulsiona financiamentos e aumenta a venda de imóveis.", imageUrl: "https://placehold.co/800x500/65a30d/FFFFFF?text=Imóveis" },
+                { title: "Pesquisadores da Fiocruz desenvolvem vacina universal contra a dengue", subtitle: "Imunizante demonstrou eficácia contra os quatro sorotipos do vírus em testes.", imageUrl: "https://placehold.co/800x500/0ea5e9/FFFFFF?text=Vacina" },
+                { title: "Exportações do agronegócio brasileiro batem novo recorde no semestre", subtitle: "Soja e carne bovina lideram as vendas para o mercado internacional.", imageUrl: "https://placehold.co/800x500/eab308/FFFFFF?text=Agronegócio" },
+                { title: "Filme brasileiro é selecionado para a competição do Festival de Cannes", subtitle: "Drama social dirigido por cineasta pernambucana disputará a Palma de Ouro.", imageUrl: "https://placehold.co/800x500/7e22ce/FFFFFF?text=Cannes" },
+                { title: "Nova rota turística 'Caminhos da Cachaça' é inaugurada em Minas Gerais", subtitle: "Roteiro integra alambiques históricos e promove o turismo gastronômico.", imageUrl: "https://placehold.co/800x500/b45309/FFFFFF?text=Cachaça" },
+                { title: "Empresa de Manaus se destaca com biojoias feitas de sementes da floresta", subtitle: "Design sustentável ganha mercado internacional e valoriza a cultura local.", imageUrl: "https://placehold.co/800x500/166534/FFFFFF?text=Biojoias" },
+                { title: "Copa do Mundo Feminina de 2027 será sediada no Brasil, anuncia FIFA", subtitle: "País venceu a disputa contra candidatura europeia e sediará o torneio pela primeira vez.", imageUrl: "https://placehold.co/800x500/22c55e/FFFFFF?text=Copa+2027" }
+            ];
+
+            const batch = writeBatch(db);
+            sampleArticles.forEach((article, index) => {
+                const docRef = doc(articlesCollection);
+                batch.set(docRef, {
+                    ...article,
+                    content: `<p>${article.subtitle} Este é um conteúdo de exemplo gerado automaticamente.</p><p><strong>Destaque:</strong> O desenvolvimento contínuo nesta área promete transformar diversos setores da economia global nos próximos anos, gerando novas oportunidades e desafios.</p>`,
+                    author: 'Redação',
+                    published: true,
+                    views: Math.floor(Math.random() * 500) + 50,
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp(),
+                });
+            });
+
+            await batch.commit();
+            showToast('Banco de dados populado com sucesso!', 'bg-blue-500');
+        };
+
+        const exportArticlesToPDF = (articles) => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.setFontSize(18);
+            doc.text("Relatório de Matérias - Blog de Notícias", 14, 22);
+            doc.setFontSize(11);
+            doc.setTextColor(100);
+            doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 14, 30);
+
+            const tableData = articles.map(a => [a.title.substring(0, 45) + '...', a.published ? 'Publicada' : 'Oculta', a.views || 0, formatDate(a.createdAt)]);
+            doc.autoTable({ startY: 40, head: [['Título', 'Status', 'Visualizações', 'Data']], body: tableData, headStyles: { fillColor: [59, 130, 246] } });
+            doc.save('relatorio-materias.pdf');
+        };
+        const copyArticleLink = () => {
+            const urlToCopy = window.location.href;
+            const textArea = document.createElement("textarea");
+            textArea.value = urlToCopy;
+            textArea.style.position = "fixed";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast('Link copiado para a área de transferência!', 'bg-green-500');
+            } catch (err) {
+                showToast('Não foi possível copiar o link.', 'bg-red-500');
+            }
+            document.body.removeChild(textArea);
+        };
+        const createNewMainArticleHTML = (article, headlines) => {
+            const headlinesHTML = headlines.map(h => `
+                <li class="border-t border-gray-200 pt-4 mt-4">
+                    <a href="#/noticia/${h.id}" class="flex items-start text-lg text-gray-700 hover:text-blue-600 font-semibold transition-colors blue-marker">
+                        <span>${h.title}</span>
+                    </a>
+                </li>
+            `).join('');
+
+            return `
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
+                <div class="lg:col-span-2 lg:order-2">
+                    <a href="#/noticia/${article.id}" class="block">
+                        <img src="${article.imageUrl}" alt="${article.title}" class="w-full h-full object-cover rounded-lg shadow-md min-h-[250px]">
+                    </a>
+                </div>
+                <div class="lg:col-span-3 lg:order-1">
+                    <a href="#/noticia/${article.id}" class="block text-3xl lg:text-5xl font-extrabold text-gray-900 hover:text-blue-600 leading-tight transition-colors">
+                        ${article.title}
+                    </a>
+                    <ul class="mt-6">${headlinesHTML}</ul>
+                </div>
+            </div>
+            `;
+        };
+        const createFeedBlockHTML = (primary, secondary) => {
+            if (!primary) return '';
+            let secondaryHTML = '';
+            if (secondary) {
+                secondaryHTML = `
+                    <div class="border-t border-gray-200 mt-4 pt-4">
+                        <a href="#/noticia/${secondary.id}" class="flex items-start text-lg text-gray-700 hover:text-blue-600 font-semibold transition-colors blue-marker">
+                            <span>${secondary.title}</span>
+                        </a>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="border-t border-gray-200 pt-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <a href="#/noticia/${primary.id}" class="block md:col-span-1">
+                            <img src="${primary.imageUrl}" alt="${primary.title}" class="w-full h-auto object-cover rounded-lg">
+                        </a>
+                        <div class="md:col-span-2">
+                            <a href="#/noticia/${primary.id}" class="block group">
+                                <h2 class="text-2xl font-bold group-hover:text-blue-600 transition-colors">${primary.title}</h2>
+                                <p class="text-gray-600 mt-1">${primary.subtitle}</p>
+                            </a>
+                        </div>
+                    </div>
+                    ${secondaryHTML}
+                </div>
+            `;
+        };
+        const createSidebarArticleHTML = (article) => {
+            if (!article) return '';
+            return `
+            <a href="#/noticia/${article.id}" class="flex items-center gap-4 group border-t border-gray-200 pt-4">
+                <div class="w-2/3">
+                    <h3 class="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">${article.title}</h3>
+                </div>
+                <div class="w-1/3">
+                    <img src="${article.imageUrl}" alt="${article.title}" class="w-full h-auto object-cover rounded-md aspect-square">
+                </div>
+            </a>
+        `};
+        const formatDate = (timestamp) => {
+            if (!timestamp || !timestamp.toDate) return 'Data indisponível';
+            return timestamp.toDate().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+        };
+        let toastTimer;
+        const showToast = (message, bgColor = 'bg-gray-800') => {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            clearTimeout(toastTimer);
+            toast.className = toast.className.replace(/bg-\w+-\d+/g, '');
+            toast.classList.add(bgColor);
+            toastMessage.textContent = message;
+            toast.classList.remove('hidden', 'toast-exit', 'toast-exit-active');
+            toast.classList.add('toast-enter-active');
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('toast-enter-active');
+                toast.classList.add('toast-exit-active');
+                setTimeout(() => toast.classList.add('hidden'), 300);
+            }, 3000);
+        };
+        const updateAdminNavActiveState = (hash) => {
+            document.querySelectorAll('#admin-nav a').forEach(link => {
+                if (link.getAttribute('href') === hash) {
+                    link.classList.add('bg-blue-100', 'text-blue-700', 'font-semibold');
+                } else {
+                    link.classList.remove('bg-blue-100', 'text-blue-700', 'font-semibold');
+                }
+            });
+        };
+        
+        const updateMetaTags = (title, description, imageUrl, url) => {
+            document.title = title; 
+            
+            document.getElementById('og-title')?.setAttribute('content', title);
+            document.getElementById('twitter-title')?.setAttribute('content', title);
+            
+            document.getElementById('og-description')?.setAttribute('content', description);
+            document.getElementById('twitter-description')?.setAttribute('content', description);
+
+            document.getElementById('og-image')?.setAttribute('content', imageUrl);
+            document.getElementById('twitter-image')?.setAttribute('content', imageUrl);
+
+            document.getElementById('og-url')?.setAttribute('content', url);
+            document.getElementById('twitter-url')?.setAttribute('content', url);
+            
+            document.getElementById('og-type')?.setAttribute('content', url.includes('noticia') ? 'article' : 'website');
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('current-year').textContent = new Date().getFullYear();
+            onAuthStateChanged(auth, user => { router(); });
+            window.addEventListener('hashchange', router);
+        });
+
+    </script>
+</body>
+</html>
+

@@ -810,8 +810,6 @@
             const availableList = document.getElementById('available-articles-list');
             
             const createAdminFeedBlockHTML = (block = {}, blockIndex) => {
-                const primaryId = block.primaryId || '';
-                const secondaryId = block.secondaryId || '';
                 const div = document.createElement('div');
                 div.className = 'feed-block draggable bg-white p-4 rounded-lg shadow border';
                 div.setAttribute('draggable', 'true');
@@ -841,7 +839,7 @@
                     window.updateAvailableArticles();
                 });
                 div.querySelectorAll('select').forEach(sel => sel.addEventListener('change', window.updateAvailableArticles));
-                return { element: div, primaryId, secondaryId };
+                return div;
             };
 
             const createArticleItemHTML = (article) => {
@@ -854,7 +852,6 @@
             };
 
             window.updateAvailableArticles = () => {
-                // 1. Get all currently used article IDs
                 const usedInBlocks = new Set();
                 document.querySelectorAll('.feed-block').forEach(block => {
                     const primary = block.querySelector('.primary-article-select').value;
@@ -865,7 +862,6 @@
                 const usedInSidebar = new Set(Array.from(sidebarList.querySelectorAll('.draggable')).map(item => item.dataset.id));
                 const allUsedIds = new Set([...usedInBlocks, ...usedInSidebar]);
 
-                // 2. Update available list
                 availableList.innerHTML = '';
                 allArticles.forEach(article => {
                     if (!allUsedIds.has(article.id)) {
@@ -873,7 +869,6 @@
                     }
                 });
 
-                // 3. Update all dropdowns in blocks
                 document.querySelectorAll('.feed-block').forEach(block => {
                     const primarySelect = block.querySelector('.primary-article-select');
                     const secondarySelect = block.querySelector('.secondary-article-select');
@@ -884,11 +879,9 @@
                     secondarySelect.innerHTML = '<option value="">-- Nenhuma (opcional) --</option>';
 
                     allArticles.forEach(article => {
-                        // For Primary Select
                         if (!allUsedIds.has(article.id) || article.id === currentPrimary) {
                             primarySelect.innerHTML += `<option value="${article.id}">${article.title}</option>`;
                         }
-                        // For Secondary Select
                         if (!allUsedIds.has(article.id) || article.id === currentSecondary) {
                             secondarySelect.innerHTML += `<option value="${article.id}">${article.title}</option>`;
                         }
@@ -902,11 +895,12 @@
             // Initial population
             feedBlocksContainer.innerHTML = '';
             (savedSettings.mainFeedBlocks || []).forEach((block, index) => {
-                const { element, primaryId, secondaryId } = createAdminFeedBlockHTML(block, index);
+                const element = createAdminFeedBlockHTML(block, index);
                 feedBlocksContainer.appendChild(element);
-                element.querySelector('.primary-article-select').value = primaryId;
-                element.querySelector('.secondary-article-select').value = secondaryId;
+                element.querySelector('.primary-article-select').value = block.primaryId || '';
+                element.querySelector('.secondary-article-select').value = block.secondaryId || '';
             });
+            
             sidebarList.innerHTML = '';
             (savedSettings.sidebarOrder || []).forEach(id => {
                 const article = allArticles.find(a => a.id === id);
@@ -914,9 +908,10 @@
             });
 
             window.updateAvailableArticles();
+
             document.getElementById('add-feed-block-btn').addEventListener('click', () => {
                 const blockCount = document.querySelectorAll('.feed-block').length;
-                const { element } = createAdminFeedBlockHTML({}, blockCount);
+                const element = createAdminFeedBlockHTML({}, blockCount);
                 feedBlocksContainer.appendChild(element);
                 window.updateAvailableArticles();
             });

@@ -897,8 +897,7 @@
             (savedSettings.mainFeedBlocks || []).forEach((block, index) => {
                 const element = createAdminFeedBlockHTML(block, index);
                 feedBlocksContainer.appendChild(element);
-                element.querySelector('.primary-article-select').value = block.primaryId || '';
-                element.querySelector('.secondary-article-select').value = block.secondaryId || '';
+                // The values will be set inside updateAvailableArticles
             });
             
             sidebarList.innerHTML = '';
@@ -908,6 +907,16 @@
             });
 
             window.updateAvailableArticles();
+
+            // After initial population, set the saved values for the blocks
+            document.querySelectorAll('.feed-block').forEach((blockElement, index) => {
+                const savedBlock = (savedSettings.mainFeedBlocks || [])[index];
+                if (savedBlock) {
+                    blockElement.querySelector('.primary-article-select').value = savedBlock.primaryId || '';
+                    blockElement.querySelector('.secondary-article-select').value = savedBlock.secondaryId || '';
+                }
+            });
+
 
             document.getElementById('add-feed-block-btn').addEventListener('click', () => {
                 const blockCount = document.querySelectorAll('.feed-block').length;
